@@ -47,8 +47,8 @@ docs_transformed[0].page_content[0:500]
 
 # Получение ключа API от пользователя и установка его как переменной окружения
 
-os.environ["OPENAI_API_KEY"] = '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'
-openai.api_key = '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'
+os.environ["OPENAI_API_KEY"] = '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'
+openai.api_key = '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'
 
 # инициализируем модель
 llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k")
@@ -174,15 +174,7 @@ def answer_index(system, topic, search_index, temp=0, verbose=0) -> str:
         {"role": "system", "content": system},
   {"role": "user", "content": f"Ответь на вопрос пользователя, но не упоминай данные тебе документы с информацией в "
                               f"ответе. Документ с информацией для ответа пользователю: {message_content}\n\nВопрос "
-                              f"пользователя: \n{topic}. Так же попытайся распознать имя, услугу, дату записи из "
-                              f"именно вопроса (сообщения) пользователя (из своих ответов дату записи не надо "
-                              f"изымать), если не сможешь этого явно сделать, то оставь эти параметры пустыми. Учти, "
-                              f"что сегодняшняя дата это {datetime.datetime.today().strftime('%Y-%m-%d')}.Если"
-                              f"не распознаешь дату, на которую необходимо записаться, то укажи пустую. Ответ "
-                              f"предоставь в json виде, то есть answer: Ответ, name: имя, service: название услуги, "
-                              f"date: дата. Ответ должен быть полностью в json виде, никакого текста до и после не "
-                              f"должно быть. Если поле answer большое то обрежь его, другие поля должны быть "
-                              f"обязательно."}
+                              f"пользователя: \n{topic}."}
     ]
 
     completion = openai.ChatCompletion.create(
