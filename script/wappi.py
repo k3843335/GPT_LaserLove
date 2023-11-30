@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-                       
 import datetime
 import requests
 from settings import *
@@ -12,7 +13,9 @@ from yclients import YClientsAPI
 from wappi_collab import *
 # Создадим индексную базу из разделенных фрагментов текста
 
-system = "Очень подробно и детально ответь на вопрос пользователя, опираясь точно на документ с информацией для ответа клиенту. Не придумывай ничего от себя. Не ссылайся на сами отрывки документ с информацией для ответа, клиент о них ничего не должен знать. Ответ дай не более 5 предложений. Не упоминай в ответе дату, имя, услугу на которую можно записаться."
+system = """Очень подробно и детально ответь на вопрос пользователя, опираясь точно на документ с информацией для ответа клиенту. Не придумывай ничего от себя. 
+Не ссылайся на сами отрывки документ с информацией для ответа, клиент о них ничего не должен знать. Ответ дай не более 5 предложений. 
+Не упоминай в ответе дату, имя, услугу на которую можно записаться."""
 
 
 def table_exists(conn, table_name):
@@ -306,7 +309,7 @@ def get_message_info(data, ans, question):
 
 def speech_to_text(topic_base64):
     ba_topic = base64.b64decode(topic_base64)
-    os.environ["OPENAI_API_KEY"] = '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'
+    os.environ["OPENAI_API_KEY"] = 'sk-№№№№№№№№№№№'
 
     try:
         file = open('temp.mp3', 'wb')
@@ -316,7 +319,7 @@ def speech_to_text(topic_base64):
         print('Something went wrong!')
 
     headers = {
-        'Authorization': 'Bearer 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',
+        'Authorization': 'Bearer sk-№№№№№№№№',
         # requests won't add a boundary if this header is set when you pass files=
         # 'Content-Type': 'multipart/form-data',
     }
@@ -449,7 +452,8 @@ def send_specialist_list(bool_val, chat_id, phone_number):
     if bool(bool_val['is_service_extracted']) is True and bool(bool_val['is_specialists_sent']) is False:
         specialist_list = get_specialists(phone_number)
         specialists = '\n'.join(specialist_list)
-        send_message(specialist_list_text + specialists, chat_id)
+        menu_back = '\nДля возврата в меню напишите слово "Меню"'
+        send_message(specialist_list_text + specialists + menu_back, chat_id)
         update_table(['is_specialists_sent'], ['TRUE'], phone_number)
 
 #отправка всех услуг в чат
@@ -564,6 +568,40 @@ def extract_slotes(name, message, bool_val, phone_number, chat_id):
         send_message(f"Вы записались на {date} {time} к {staff_name}. Стоимость {cost}. Для возврата в меню напишите слово 'Меню'", chat_id)
         update_table(['action'], ['0'], phone_number)
 
+#в yclient есть два вида токенов к api - для получения товаров - необходимо такой метод через USER_TOKEN
+def get_all_products():
+    api = YClientsAPI(token=TOKEN, company_id=CID, form_id=FID)
+    USER_TOKEN = api.get_user_token('bodka@mail.ru', 'Qazqaz123$')
+    url = "https://n{}.yclients.com/api/v1/goods/{}/".format(FID, CID)
+    headers = {
+        "Accept": "application/vnd.yclients.v2+json",
+        'Accept-Language': 'ru-RU',
+        'Authorization': "Bearer {}, User {}".format(TOKEN, USER_TOKEN),
+        'Cache-Control': "no-cache"
+    }
+    response = httpx.request("GET", url, headers=headers)
+    data = ujson.loads(response.text)
+    product_list = []
+    for i, prod in enumerate(data['data']):
+        prod_cost = f"{i+1}. {prod['value']}, стоимость {prod['actual_cost']}"
+        product_list.append(prod_cost)
+    return product_list
+
+
+def send_products(chat_id, phone_number):
+    products_list_text = "Выберите товар, который хотите приобрести, отправив номер товара: \n"
+    product_list = get_all_products()
+    products = '\n'.join(product_list)
+    menu_back = '\nДля возврата в меню напишите слово "Меню"'
+    send_message(products_list_text + products + menu_back, chat_id)
+
+def extract_product(message):
+    product_list = get_all_products()
+    for st in product_list:
+        num, product = st.split('.')
+        if message in num:
+            create_book(name="Товары", phone_number='71234567890', service_id=14198613, date_time=datetime.datetime.today().isoformat(), staff_id=2865000)
+            break
 
 def send_message(text, recipient):
     json_body = {
@@ -618,7 +656,8 @@ def iterate_over_requests(data):
                                  '2. Изменить запись на прием \n '
                                  '3. Узнать информацию о франшизе \n '
                                  '4. Узнать информацию о продуктах \n '
-                                 'Для выбора отправьте число от 1 до 4.', chat_id)
+                                 '5. Узнать цены на косметику \n '                                                      
+                                 'Для выбора отправьте число от 1 до 5.', chat_id)
                     insert_chat_history(0, message, 'action_choice', name, phone_number,
                                         datetime.datetime.today(), 'test', 'test', 'test', 'test', 'test')
                 else:
@@ -637,7 +676,8 @@ def iterate_over_requests(data):
                                      '2. Изменить запись на прием \n '
                                      '3. Узнать информацию о франшизе \n '
                                      '4. Узнать информацию о продуктах \n '
-                                     'Для выбора отправьте число от 1 до 4.', chat_id)
+                                     '5. Узнать цены на косметику \n '                                                      
+                                     'Для выбора отправьте число от 1 до 5.', chat_id)
                         # update_table(['action',
                         #               'is_services_sent', 'is_service_extracted',
                         #               'is_specialists_sent', 'is_specialists_extracted',
@@ -676,6 +716,9 @@ def iterate_over_requests(data):
                         elif message == '3' or message == '4':
                             send_message('Задайте вопрос в произвольной форме. ', chat_id)
                             update_table(['action'], [message], phone_number)
+                        elif message == '5':
+                            update_table(['action'], [message], phone_number)
+                            send_products(chat_id, phone_number)                  
 
                         else:
                             send_message('Повторите выбор, число не распознано', chat_id)
@@ -709,7 +752,7 @@ def iterate_over_requests(data):
                     elif action in [3, 4]:
                         ans = answer_index(system, message, db_2, temp=0, verbose=0)
                         #ans = 'Тестовый ответ'
-                        send_message(ans + '\n\n Для выбора другого действия отправьте число от 1 до 4.', chat_id)
+                        send_message(ans + '\n\n Для выбора другого действия отправьте число от 1 до 5.', chat_id)
                         try:
                             get_message_info(content_data, ans, message)
                         except Exception as db_e:
@@ -723,7 +766,11 @@ def iterate_over_requests(data):
                                      '2. Изменить запись на прием \n '
                                      '3. Узнать информацию о франшизе \n '
                                      '4. Узнать информацию о продуктах \n '
-                                     'Для выбора отправьте число от 1 до 4.', chat_id)
+                                     '5. Узнать цены на косметику \n '                                                      
+                                     'Для выбора отправьте число от 1 до 5.', chat_id)
+                    elif action == 5:
+                        update_table(['action'], ['0'], phone_number)
+                        extract_product(message)                 
 
 
                     #

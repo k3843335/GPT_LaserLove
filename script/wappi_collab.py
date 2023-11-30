@@ -47,8 +47,8 @@ docs_transformed[0].page_content[0:500]
 
 # Получение ключа API от пользователя и установка его как переменной окружения
 
-os.environ["OPENAI_API_KEY"] = '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'
-openai.api_key = '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'
+os.environ["OPENAI_API_KEY"] = 'sk-№№№№№'
+openai.api_key = 'sk-№№№№№№№'
 
 # инициализируем модель
 llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k")
@@ -149,6 +149,21 @@ fragment_token_counts = num_tokens_from_strings(chunks_all, "cl100k_base")
 
 # Визуализируем результат
 
+# функция для загрузки документа по ссылке из гугл драйв
+def load_document_text(url: str) -> str:
+    # Extract the document ID from the URL
+    match_ = re.search('/document/d/([a-zA-Z0-9-_]+)', url)
+    if match_ is None:
+        raise ValueError('Invalid Google Docs URL')
+    doc_id = match_.group(1)
+
+    # Download the document as plain text
+    response = requests.get(f'https://docs.google.com/document/d/{doc_id}/export?format=txt')
+    response.raise_for_status()
+    text = response.text
+
+    return text
+
 
 # Инициализирум модель эмбеддингов
 embeddings = OpenAIEmbeddings()
@@ -156,7 +171,8 @@ embeddings = OpenAIEmbeddings()
 # Создадим индексную базу из разделенных фрагментов текста
 db_2 = FAISS.from_texts(chunks_all, embeddings)
 
-system="Очень подробно и детально ответь на вопрос пользователя, опираясь точно на документ с информацией для ответа клиенту. Не придумывай ничего от себя. Не ссылайся на сами отрывки документ с информацией для ответа, клиент о них ничего не должен знать. Ответ дай не более 5 предложений. Не упоминай в ответе дату, имя, услугу на которую можно записаться."
+#system="Очень подробно и детально ответь на вопрос пользователя, опираясь точно на документ с информацией для ответа клиенту. Не придумывай ничего от себя. Не ссылайся на сами отрывки документ с информацией для ответа, клиент о них ничего не должен знать. Ответ дай не более 5 предложений. Не упоминай в ответе дату, имя, услугу на которую можно записаться."
+system = load_document_text('https://docs.google.com/document/d/12wqVNi52NbuQEgmVlhs8ODArC9D7MeIgiM27kCqG7o0')
 
 def answer_index(system, topic, search_index, temp=0, verbose=0) -> str:
     """
