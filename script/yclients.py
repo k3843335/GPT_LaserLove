@@ -1,5 +1,5 @@
-#Это библиотека yclients
 # coding=utf-8
+#всю библиотеку с yclient перенесли в этот файл
 import datetime
 import time
 import httpx

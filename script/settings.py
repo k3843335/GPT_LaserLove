@@ -6,5 +6,5 @@ CID = 950589
 FID = 1024933
 
 # этот ключ генерируем на странице https://wappi.pro/api-documentation Работа с webhook (уведомлениями) Get - генерируем этот ключ он же равен токену для него
-token_id = "482121d7-21fb-4699-8af2-0d55f6819df6"
-headers = {"api-key": "482121d7-21fb-4699-8af2-0d55f6819df6"}
+token_id = "66b53237-0ffa-45e3-93c8-c2e17a6a568d"
+headers = {"api-key": "66b53237-0ffa-45e3-93c8-c2e17a6a568d"}
